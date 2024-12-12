@@ -1,12 +1,12 @@
-
 #include <iostream>
 #include <vector>
 #include <queue>
 #include <unordered_map>
+#include <algorithm>
 
 struct pair_hash {
     std::size_t operator()(const std::pair<int, int>& pair) const {
-        return std::hash<int>()(pair.first) + (std::hash<int>()(pair.second));
+        return std::hash<int>()(pair.first) ^ (std::hash<int>()(pair.second) << 1);
     }
 };
 
@@ -29,11 +29,13 @@ static int maze[15][15] = {
 };
 
 bool BFS(std::pair<int, int> start, std::pair<int, int> end, std::vector<std::pair<int, int>>& path) {
-    std::vector<std::pair<int, int>> directions = { {-1, 0}, {0, 1}, {1, 0}, {0, -1} };
+    std::vector<std::pair<int, int>> directions = { {0, 1}, {1, 0}, {0, -1}, {-1, 0} }; // Right, Down, Left, Up
     std::queue<std::pair<int, int>> queue;
     std::unordered_map<std::pair<int, int>, std::pair<int, int>, pair_hash> parent;
+    std::unordered_map<std::pair<int, int>, bool, pair_hash> visited;
 
     queue.push(start);
+    visited[start] = true;
     parent[start] = start;
 
     while (!queue.empty()) {
@@ -41,11 +43,10 @@ bool BFS(std::pair<int, int> start, std::pair<int, int> end, std::vector<std::pa
         queue.pop();
 
         if (current == end) {
-
-            auto node = end;
-            while (node != start) {
-                path.push_back(node);
-                node = parent[node];
+            path.clear();
+            while (current != start) {
+                path.push_back(current);
+                current = parent[current];
             }
             path.push_back(start);
             std::reverse(path.begin(), path.end());
@@ -55,13 +56,14 @@ bool BFS(std::pair<int, int> start, std::pair<int, int> end, std::vector<std::pa
         for (auto& direction : directions) {
             std::pair<int, int> next_cell = { current.first + direction.first, current.second + direction.second };
 
-            if (0 <= next_cell.first && next_cell.first < 15
-                && 0 <= next_cell.second && next_cell.second < 15
-                && maze[next_cell.first][next_cell.second] == 0
-                && parent.find(next_cell) == parent.end())
+            if (0 <= next_cell.first && next_cell.first < 15 &&
+                0 <= next_cell.second && next_cell.second < 15 &&
+                maze[next_cell.first][next_cell.second] == 1 &&  /
+                !visited[next_cell])
             {
-                parent[next_cell] = current;
                 queue.push(next_cell);
+                visited[next_cell] = true;
+                parent[next_cell] = current;
             }
         }
     }
@@ -69,8 +71,8 @@ bool BFS(std::pair<int, int> start, std::pair<int, int> end, std::vector<std::pa
 }
 
 int main() {
-    std::pair<int, int> start = { 13, 0 };
-    std::pair<int, int> end = { 2, 14 };
+    std::pair<int, int> start = { 13, 0 };  
+    std::pair<int, int> end = { 1, 14 };    
     std::vector<std::pair<int, int>> path;
 
     if (BFS(start, end, path)) {
