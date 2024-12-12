@@ -20,7 +20,7 @@ void restricted_tower_of_hanoi(int n, char src, char aux, char dst) {
 int main() {
     int n = 3;
     restricted_tower_of_hanoi(n, 'A', 'B', 'C');\
-    std::cout << std::endl << move_count;
+    std::cout << std::endl << "Number of moves:" << move_count;
     return 0;
     
 }
